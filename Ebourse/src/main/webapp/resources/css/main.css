@@ -1,0 +1,32 @@
+.wrapper{
+  width:500px;
+  margin-left:auto;
+  margin-right:auto
+}
+label{
+  padding-left:0 !important
+}
+.password-verdict{
+color:#000;
+}
+.navbar-brand {
+  padding: 3px;
+  line-height: 1;
+
+}
+.navbar-brand img {
+    margin-top: 5px;
+    margin-left: 5px;
+}
+.myfontclass{
+  font-size:14px;
+}
+.input-sm{
+  height: 18px;
+  max-width: 90px;
+}
+@media screen and (max-device-width: 480px) and (orientation: portrait){
+  .input-sm{
+    height: 18px;
+    max-width: 50px;
+  }}

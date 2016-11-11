@@ -1,0 +1,287 @@
+<html
+   xmlns:th="http://www.thymeleaf.org"
+   xmlns:sec="http://www.springframework.org/security/tags">
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link rel="stylesheet" href="/resources/css/bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/dataTables.bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/normalize.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/main.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/responsive-tables.css">
+      </link>
+      <script src="/resources/js/jquery-1.12.0.min.js"></script>
+      <script src="/resources/js/responsive-tables.js"></script>
+      <script src="/resources/js/modernizr-2.8.3.min.js"></script>
+      <script src="/resources/js/bootstrap.min.js"></script>
+      <script src="/resources/js/plugins.js"></script>
+      <script src="/resources/js/main.js"></script>
+      <script src="/resources/js/jquery.dataTables.min.js"></script>
+      <script src="/resources/js/dataTables.bootstrap.min.js"></script>
+      <title th:text="#{label.pages.marketvalues.title}"></title>
+   </head>
+   <body>
+     <nav class="navbar navbar-default">
+        <div class="container-fluid">
+           <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              </button>
+              <a rel="home" href="#">
+              <img class="navbar-brand" src="/resources/img/logo.png"/>
+              </a>
+           </div>
+           <div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+                <li><a sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" th:href="@{/home.html}" th:text="#{label.pages.home.title}">home</a></li>
+                <li><a sec:authorize="hasAuthority('USERS_UPDATE_PRIVILEGE')" th:href="@{/users}" th:text="#{label.pages.users.title}"></a></li>
+                <li><a sec:authorize="hasAuthority('UPDATE_ORDERS_PRIVILEGE')" th:href="@{/backoffice.html}" th:text="#{label.pages.backoffice.title}">backoffice</a></li>
+                <li><a sec:authorize="hasAuthority('ENABLE_USERS_PRIVILEGE')" th:href="@{/frontoffice.html}" th:text="#{label.pages.frontoffice.title}">frontoffice</a></li>
+                <li class="active"><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/marketvalues.html}" th:text="#{label.pages.marketvalues.title}">marketvalues</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/orders.html}" th:text="#{label.pages.orders.title}">orders</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/executions.html}" th:text="#{label.pages.executions.title}">executions</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/requests.html}" th:text="#{label.pages.requests.title}">requests</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/portfolios.html}" th:text="#{label.pages.portfolios.title}">portfolios</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                 <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="glyphicon glyphicon-user"></i>  <i class="glyphicon glyphicon-chevron-down"></i>
+                    </a>
+                    <ul sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" class="dropdown-menu dropdown-user">
+                       <li><a><i class="glyphicon glyphicon-user"></i>&nbsp;<span th:text="${session.user.username}">email</span></a>
+                       </li>
+                       <li><a th:href="@{/changePassword.html}"><i class="glyphicon glyphicon-cog"></i>&nbsp;<span th:text="#{message.changePassword}"></span></a>
+                       </li>
+                       <li class="divider"></li>
+                       <li><a th:href="@{/logout}"><i class="glyphicon glyphicon-log-out"></i>&nbsp;<span th:text="#{label.pages.logout}">logout</span></a>
+                       </li>
+                    </ul>
+                 </li>
+              </ul>
+           </div>
+        </div>
+     </nav>
+      <div class="container" sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')">
+         <div class="alert alert-danger" sec:authorize="!hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:text="#{message.unauth}">unauth</div>
+         <div id="globalErrors" class="alert alert-danger" style="display:none"></div>
+         <div id="globalInfos" th:if="${param.message != null}" class="alert alert-info" th:text="${param.message[0]}"></div>
+         <h2>Market Values</h2>
+         <div class="modal fade" id="buyModal" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+            <div class="modal-dialog">
+               <div class="modal-content">
+                  <form method="post" id="buyForm">
+                     <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </button>
+                        <h4 class="modal-title custom_align" id="Heading">Buy Request</h4>
+                     </div>
+                     <div class="modal-body">
+                        <div class="form-group">
+                           <label>Portfolio</label>
+                           <select name="portfolioNumber" class="form-control" id="portfolios">
+                              <th:block th:each="portfolio : ${PortfoliosByUser}">
+                                 <option th:value="${portfolio.key}" th:text="${portfolio.key}">number</option>
+                              </th:block>
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Bank Account</label>
+                           <select name="bankAccountNumber" class="form-control" id="bankAccounts">
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Isin</label>
+                           <input id="isinInput" class="form-control" list="isins" type="text" name="isin"/>
+                           <span id="isinError" class="text-Danger" style="display:none"></span>
+                           <datalist id="isins">
+                              <option value="ISIN1"/>
+                           </datalist>
+                        </div>
+                        <div class="form-group">
+                        <label>Operation</label>
+                        <select name="operation" class="form-control" id="operations">
+                        <option selected="selected" th:value="${T(com.bfigroupe.ebourse.persistence.model.OperationType).BUY.type}" th:text="${T(com.bfigroupe.ebourse.persistence.model.OperationType).BUY.type}">BUY</option>
+                        </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Quantity</label>
+                           <input class="form-control " type="number" name="initialQuantity" value="0"/>
+                           <span id="initialQuantityError" class="text-Danger" style="display:none"></span>
+                        </div>
+                        <div class="form-group">
+                           <label>Type</label>
+                           <select name="type" class="form-control OrderTypes">
+                              <option selected="selected" th:value="${T(com.bfigroupe.ebourse.persistence.model.OrderType).BEST_PRICE_LIMIT_ORDER}" th:text="${T(com.bfigroupe.ebourse.persistence.model.OrderType).BEST_PRICE_LIMIT_ORDER.type}">BEST_PRICE_LIMIT</option>
+                              <option th:value="${T(com.bfigroupe.ebourse.persistence.model.OrderType).LIMITED_PRICE_ORDER}" th:text="${T(com.bfigroupe.ebourse.persistence.model.OrderType).LIMITED_PRICE_ORDER.type}">LIMITED_PRICE</option>
+                              <option th:value="${T(com.bfigroupe.ebourse.persistence.model.OrderType).MARKET_ORDER}" th:text="${T(com.bfigroupe.ebourse.persistence.model.OrderType).MARKET_ORDER.type}">MARKET_ORDER</option>
+                              <option th:value="${T(com.bfigroupe.ebourse.persistence.model.OrderType).WITH_EXECUTION_ONSET}" th:text="${T(com.bfigroupe.ebourse.persistence.model.OrderType).WITH_EXECUTION_ONSET.type}">WITH_EXECUTION_ONSET</option>
+                           </select>
+                        </div>
+                        <div class="form-group">
+                           <label>Validity Date</label>
+                           <input class="form-control " type="date" name="validity" placeholder="New Validity Date (yyyy-mm-dd)"/>
+                           <span id="validityError" class="text-Danger" style="display:none"></span>
+                        </div>
+                        <div class="form-group">
+                           <label>Validity Type</label>
+                           <select name="validityType" class="form-control" id="validityTypes">
+                              <option selected="selected" th:value="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).DAILY.type}" th:text="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).DAILY.type}">DAILY</option>
+                              <option th:value="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).FAK.type}" th:text="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).FAK.type}">FAK</option>
+                              <option th:value="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).GTC.type}" th:text="${T(com.bfigroupe.ebourse.persistence.model.ValidityType).GTC.type}">GTC</option>
+                           </select>
+                        </div>
+                        <div style="display:none" id="limitPriceInput" class="form-group">
+                           <label>Price Limit</label>
+                           <input class="form-control" type="number" name="limitPrice" value="0"/>
+                           <span id="limitPriceError" class="text-Danger" style="display:none"></span>
+                        </div>
+                        <div style="display:none" id="onsetInput" class="form-group">
+                           <label>Onset</label>
+                           <input class="form-control" type="number" name="onset" value="0"/>
+                           <span id="onsetError" class="text-Danger" style="display:none"></span>
+                        </div>
+                     </div>
+                     <div class="modal-footer ">
+                        <a id="submitBuy" class="btn btn-success btn-lg" style="width: 100%;">
+                        <span class="glyphicon glyphicon-ok-sign"></span>
+                        </a>
+                     </div>
+                  </form>
+               </div>
+            </div>
+         </div>
+         <hr/>
+         <table id="myTable" class="table table-striped table-bordered responsive">
+            <thead style="font-size:15px">
+               <tr>
+                  <th>ISIN</th>
+                  <th>Price</th>
+                  <th>Date</th>
+                  <th>Variation</th>
+                  <th>Actions</th>
+               </tr>
+            </thead>
+            <tbody style="font-size:14px">
+               <th:block th:each="marketValue : ${marketvalues}">
+                  <tr>
+                     <td id="isin" th:text="${marketValue.value.isin}">isin</td>
+                     <td id="price" th:text="${marketValue.cours}">cours</td>
+                     <td id="date" th:text="${marketValue.date}">date</td>
+                     <td id="variation"></td>
+                     <td>
+                        <a id="buy" data-target="#buyModal" class="btn btn-success" data-toggle="modal"><i class="glyphicon glyphicon-shopping-cart"></i>&nbsp;Buy
+                        <span class="hidden" th:text="${marketValue.id}"></span>
+                        </a>
+                        <a class="btn btn-default"><i class="glyphicon glyphicon-info-sign"></i>&nbsp;Show details</a>
+                     </td>
+                  </tr>
+               </th:block>
+            </tbody>
+         </table>
+         <script type="text/javascript" th:inline="javascript">
+            /*<![CDATA[*/
+
+            $(document).ready(function() {
+            $("#portfolios")[0].selectedIndex = -1;
+              $('#myTable').DataTable();
+              $("#globalErrors").delay(5000).slideUp();
+              $("#globalInfos").delay(5000).slideUp();
+              updateMarketValuesCurrentPrices();
+
+              function updateMarketValuesCurrentPrices() {
+            	console.log("OK");
+                  $('#myTable tbody tr').each(function() {
+                      var isin = $(this).find('#isin').text();
+                      var price = $(this).find('#price');
+            				var date = $(this).find('#date');
+                      var variation = $(this).find('#variation');
+                      console.log(isin);
+                      if(!isBlank(isin))
+                      $.ajax({
+                          type: 'GET',
+                          url: '/marketvalues/minified/isin/'+isin,
+                          timeout: 3000,
+                          success: function(data) {
+                               variation.text(100 * (data.cours - price.text()) / price.text() + " %");
+            									price.text(data.cours);
+            									date.text(data.date);
+                          },
+                          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            							$("#globalErrors").html(XMLHttpRequest.responseJSON.message);
+                           $("#globalErrors").slideDown();
+            						}
+                      });
+                  });
+                  window.setTimeout(updateMarketValuesCurrentPrices, 6000);
+              }
+              $('.OrderTypes').on('change', function() {
+                  if (this.value == 'LIMITED_PRICE_ORDER') {
+                      $(this).parent('div').parent('div').find('#onsetInput').slideUp();
+                      $(this).parent('div').parent('div').find('#limitPriceInput').slideDown();
+                  } else if (this.value == 'WITH_EXECUTION_ONSET') {
+                      $(this).parent('div').parent('div').find('#limitPriceInput').slideUp();
+                      $(this).parent('div').parent('div').find('#onsetInput').slideDown();
+                  } else {
+                      $(this).parent('div').parent('div').find('#onsetInput').slideUp();
+                      $(this).parent('div').parent('div').find('#limitPriceInput').slideUp();
+                  }
+              });
+
+              $('#portfolios').on('change', function() {
+                  var bankAccountsSelect = $(this).parent('div').parent('div').find('#bankAccounts');
+                  var portfolios = /*[[${PortfoliosByUser}]]*/ '';
+            		var portfolioSelected = this.value;
+                  var bankAccounts = portfolios[portfolioSelected];
+            		var arrayLength = bankAccounts.length;
+            		bankAccountsSelect.empty();
+            		for (var i = 0; i < arrayLength; i++) {
+            		var option = $('<option></option>').attr("value", bankAccounts[i]).text(bankAccounts[i]);
+            		bankAccountsSelect.append(option);
+            		}
+              });
+
+              $(document).on('click', '#buy', function() {
+                  var id = $(this).children().first().text();
+                  var isin = $(this).parent('td').parent('tr').find('#isin').text();
+                  $('#isinInput').val(isin);
+                  $('#marketValueid').val(id);
+              });
+
+              $(document).on('click', '#submitBuy', function() {
+                  $(".text-Danger").html('').hide();
+                  var formData = $('#buyForm').serialize();
+                  console.log(formData);
+                  $.post("orders/add", formData, function(data) {
+                          console.log(data.message);
+                          if (data.error == "empty") {
+                              window.location.href = "/marketvalues.html?message=" + data.message;
+                          } else {
+                              var errors = $.parseJSON(data.message);
+                              console.log(errors);
+                              $.each(errors, function(index, item) {
+                                  $("#" + item.field + "Error").show().html('&nbsp;' + item.defaultMessage);
+                              });
+                              errors = $.parseJSON(data.error);
+                          }
+                      })
+                      .fail(function(data) {
+                          console.log(data.responseJSON.message);
+                          $('#buyModal').modal('toggle');
+                          $("#globalErrors").html(data.responseJSON.message);
+                          $("#globalErrors").slideDown();
+                      });
+              });
+            });
+
+            /*]]>*/
+         </script>
+      </div>
+   </body>
+</html>

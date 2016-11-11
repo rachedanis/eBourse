@@ -1,0 +1,132 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link rel="stylesheet" href="/resources/css/bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/dataTables.bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/normalize.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/main.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/responsive-tables.css">
+      </link>
+      <script src="/resources/js/jquery-1.12.0.min.js"></script>
+      <script src="/resources/js/responsive-tables.js"></script>
+      <script src="/resources/js/modernizr-2.8.3.min.js"></script>
+      <script src="/resources/js/bootstrap.min.js"></script>
+      <script src="/resources/js/plugins.js"></script>
+      <script src="/resources/js/main.js"></script>
+      <script src="/resources/js/jquery.dataTables.min.js"></script>
+      <script src="/resources/js/dataTables.bootstrap.min.js"></script>
+      <title th:text="#{label.pages.requests.title}"></title>
+   </head>
+   <body>
+     <nav class="navbar navbar-default">
+        <div class="container-fluid">
+           <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              </button>
+              <a rel="home" href="#">
+              <img class="navbar-brand" src="/resources/img/logo.png"/>
+              </a>
+           </div>
+           <div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+                <li><a sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" th:href="@{/home.html}" th:text="#{label.pages.home.title}">home</a></li>
+                <li><a sec:authorize="hasAuthority('USERS_UPDATE_PRIVILEGE')" th:href="@{/users}" th:text="#{label.pages.users.title}"></a></li>
+                <li><a sec:authorize="hasAuthority('UPDATE_ORDERS_PRIVILEGE')" th:href="@{/backoffice.html}" th:text="#{label.pages.backoffice.title}">backoffice</a></li>
+                <li><a sec:authorize="hasAuthority('ENABLE_USERS_PRIVILEGE')" th:href="@{/frontoffice.html}" th:text="#{label.pages.frontoffice.title}">frontoffice</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/marketvalues.html}" th:text="#{label.pages.marketvalues.title}">marketvalues</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/orders.html}" th:text="#{label.pages.orders.title}">orders</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/executions.html}" th:text="#{label.pages.executions.title}">executions</a></li>
+                <li class="active"><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/requests.html}" th:text="#{label.pages.requests.title}">requests</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/portfolios.html}" th:text="#{label.pages.portfolios.title}">portfolios</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                 <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="glyphicon glyphicon-user"></i>  <i class="glyphicon glyphicon-chevron-down"></i>
+                    </a>
+                    <ul sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" class="dropdown-menu dropdown-user">
+                       <li><a><i class="glyphicon glyphicon-user"></i>&nbsp;<span th:text="${session.user.username}">email</span></a>
+                       </li>
+                       <li><a th:href="@{/changePassword.html}"><i class="glyphicon glyphicon-cog"></i>&nbsp;<span th:text="#{message.changePassword}"></span></a>
+                       </li>
+                       <li class="divider"></li>
+                       <li><a th:href="@{/logout}"><i class="glyphicon glyphicon-log-out"></i>&nbsp;<span th:text="#{label.pages.logout}">logout</span></a>
+                       </li>
+                    </ul>
+                 </li>
+              </ul>
+           </div>
+        </div>
+     </nav>
+      <div class="container" sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')">
+         <div id="globalErrors" class="alert alert-danger" style="display:none"></div>
+         <div id="globalInfos" th:if="${param.message != null}" class="alert alert-info" th:text="${param.message[0]}"></div>
+         <h2>Requests </h2>
+         <table id="myTable"  class="table table-bordered table-striped responsive" >
+            <thead>
+               <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Order ID</th>
+                  <th>Order ISIN</th>
+                  <th>Order Status</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Delete</th>
+               </tr>
+            </thead>
+            <tbody>
+               <th:block th:each="request : ${RequestsByUser}">
+                  <tr>
+                     <td th:text="${request.id}">id</td>
+                     <td th:text="${request.type}">Type</td>
+                     <td th:text="${request.oldOrder.id}">id</td>
+                     <td th:text="${request.oldOrder.marketvalue.value.isin}">isin</td>
+                     <td th:text="${request.oldOrder.status}">status</td>
+                     <td th:text="${request.date}">date</td>
+                     <td th:text="${request.status}">status</td>
+                     <td th:if="${request.status == T(com.bfigroupe.ebourse.persistence.model.RequestState).NOT_SENT.state}">
+                        <a id="delete" class=" btn glyphicon glyphicon-remove"><span class="hidden" th:text="${request.id}"></span></a>
+                     </td>
+                     <td th:unless="${request.status == T(com.bfigroupe.ebourse.persistence.model.RequestState).NOT_SENT.state}">
+                        <a id="details" class=" btn btn-default">Show details<span class="hidden" th:text="${request.id}"></span></a>
+                     </td>
+                  </tr>
+               </th:block>
+            </tbody>
+         </table>
+         <script type="text/javascript">
+         $(document).ready(function() {
+
+            $('#myTable').DataTable();
+            $("#globalErrors").delay(5000).slideUp();
+            $("#globalInfos").delay(5000).slideUp();
+
+            $(document).on('click','#delete',function(){
+              var id =$(this).children().first().text();
+              $.ajax({
+                url: '/requests/delete/'+id,
+                dataType: 'json',
+                success: function(data, textStatus, jqXHR) {
+                  if(data.error == "empty"){
+                    window.location.href = "/requests.html?message=" + data.message;
+                  }
+               },
+                error: function(jqXHR, textStatus, errorThrown) {
+                  $("#globalErrors").html(jqXHR.responseJSON.message);
+                  $("#globalErrors").slideDown();
+                }
+              });
+            });
+          });
+         </script>
+      </div>
+   </body>
+</html>

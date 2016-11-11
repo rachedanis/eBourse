@@ -1,0 +1,14 @@
+.to-show{
+	display:none;
+}
+
+.navbar-brand {
+  padding: 3px;
+  line-height: 1;
+
+}
+
+.navbar-brand img {
+    margin-top: 5px;
+    margin-left: 5px;
+}

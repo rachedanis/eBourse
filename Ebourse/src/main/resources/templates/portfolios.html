@@ -1,0 +1,104 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link rel="stylesheet" href="/resources/css/bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/dataTables.bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/normalize.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/main.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/responsive-tables.css">
+      </link>
+      <script src="/resources/js/jquery-1.12.0.min.js"></script>
+      <script src="/resources/js/responsive-tables.js"></script>
+      <script src="/resources/js/modernizr-2.8.3.min.js"></script>
+      <script src="/resources/js/bootstrap.min.js"></script>
+      <script src="/resources/js/plugins.js"></script>
+      <script src="/resources/js/main.js"></script>
+      <script src="/resources/js/jquery.dataTables.min.js"></script>
+      <script src="/resources/js/dataTables.bootstrap.min.js"></script>
+      <title th:text="#{label.pages.portfolios.title}"></title>
+   </head>
+   <body>
+     <nav class="navbar navbar-default">
+        <div class="container-fluid">
+           <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              </button>
+              <a rel="home" href="#">
+              <img class="navbar-brand" src="/resources/img/logo.png"/>
+              </a>
+           </div>
+           <div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+                <li><a sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" th:href="@{/home.html}" th:text="#{label.pages.home.title}">home</a></li>
+                <li><a sec:authorize="hasAuthority('USERS_UPDATE_PRIVILEGE')" th:href="@{/users}" th:text="#{label.pages.users.title}"></a></li>
+                <li><a sec:authorize="hasAuthority('UPDATE_ORDERS_PRIVILEGE')" th:href="@{/backoffice.html}" th:text="#{label.pages.backoffice.title}">backoffice</a></li>
+                <li><a sec:authorize="hasAuthority('ENABLE_USERS_PRIVILEGE')" th:href="@{/frontoffice.html}" th:text="#{label.pages.frontoffice.title}">frontoffice</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/marketvalues.html}" th:text="#{label.pages.marketvalues.title}">marketvalues</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/orders.html}" th:text="#{label.pages.orders.title}">orders</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/executions.html}" th:text="#{label.pages.executions.title}">executions</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/requests.html}" th:text="#{label.pages.requests.title}">requests</a></li>
+                <li class="active"><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/portfolios.html}" th:text="#{label.pages.portfolios.title}">portfolios</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                 <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="glyphicon glyphicon-user"></i>  <i class="glyphicon glyphicon-chevron-down"></i>
+                    </a>
+                    <ul sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" class="dropdown-menu dropdown-user">
+                       <li><a><i class="glyphicon glyphicon-user"></i>&nbsp;<span th:text="${session.user.username}">email</span></a>
+                       </li>
+                       <li><a th:href="@{/changePassword.html}"><i class="glyphicon glyphicon-cog"></i>&nbsp;<span th:text="#{message.changePassword}"></span></a>
+                       </li>
+                       <li class="divider"></li>
+                       <li><a th:href="@{/logout}"><i class="glyphicon glyphicon-log-out"></i>&nbsp;<span th:text="#{label.pages.logout}">logout</span></a>
+                       </li>
+                    </ul>
+                 </li>
+              </ul>
+           </div>
+        </div>
+     </nav>
+      <div class="alert alert-danger" sec:authorize="!hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:text="#{message.unauth}">unauth</div>
+      <div class="container" sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')">
+        <div id="globalErrors" class="alert alert-danger" style="display:none"></div>
+        <div id="globalInfos" th:if="${param.message != null}" class="alert alert-info" th:text="${param.message[0]}"></div>
+         <h2>Portfolios </h2>
+         <table id="myTable"  class="table table-bordered table-striped responsive" >
+            <thead>
+               <tr>
+                  <th>Number</th>
+                  <th>Valorisation</th>
+                  <th>Date</th>
+               </tr>
+            </thead>
+            <tbody>
+               <th:block th:each="portfolio : ${PortfoliosByUser}">
+                  <tr>
+                     <td th:text="${portfolio.number}">number</td>
+                     <td><span th:text="${portfolio.valorization}">valorisation</span>&nbsp;Dt</td>
+                     <td class="today"></td>
+                  </tr>
+               </th:block>
+            </tbody>
+         </table>
+         <script th:inline="javascript">
+            $(document).ready(function(){
+              $('#myTable').DataTable();
+
+              $("#globalErrors").delay(5000).slideUp();
+              $("#globalInfos").delay(5000).slideUp();
+
+              var today = new Date();
+              $('.today').text(today.toDateString());
+            });
+         </script>
+      </div>
+   </body>
+</html>

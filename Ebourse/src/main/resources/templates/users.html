@@ -1,0 +1,219 @@
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.springframework.org/security/tags">
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link rel="stylesheet" href="/resources/css/bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/dataTables.bootstrap.min.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/normalize.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/main.css">
+      </link>
+      <link rel="stylesheet" href="/resources/css/responsive-tables.css">
+      </link>
+      <script src="/resources/js/jquery-1.12.0.min.js"></script>
+      <script src="/resources/js/responsive-tables.js"></script>
+      <script src="/resources/js/modernizr-2.8.3.min.js"></script>
+      <script src="/resources/js/bootstrap.min.js"></script>
+      <script src="/resources/js/plugins.js"></script>
+      <script src="/resources/js/main.js"></script>
+      <script src="/resources/js/jquery.dataTables.min.js"></script>
+      <script src="/resources/js/dataTables.bootstrap.min.js"></script>
+      <title th:text="#{label.pages.users.title}"></title>
+   </head>
+   <body>
+     <nav class="navbar navbar-default">
+        <div class="container-fluid">
+           <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              </button>
+              <a rel="home" href="#">
+              <img class="navbar-brand" src="/resources/img/logo.png"/>
+              </a>
+           </div>
+           <div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+                <li><a sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" th:href="@{/home.html}" th:text="#{label.pages.home.title}">home</a></li>
+                <li class="active"><a sec:authorize="hasAuthority('USERS_UPDATE_PRIVILEGE')" th:href="@{/users}" th:text="#{label.pages.users.title}"></a></li>
+                <li><a sec:authorize="hasAuthority('UPDATE_ORDERS_PRIVILEGE')" th:href="@{/backoffice.html}" th:text="#{label.pages.backoffice.title}">backoffice</a></li>
+                <li><a sec:authorize="hasAuthority('ENABLE_USERS_PRIVILEGE')" th:href="@{/frontoffice.html}" th:text="#{label.pages.frontoffice.title}">frontoffice</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/marketvalues.html}" th:text="#{label.pages.marketvalues.title}">marketvalues</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/orders.html}" th:text="#{label.pages.orders.title}">orders</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/executions.html}" th:text="#{label.pages.executions.title}">executions</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/requests.html}" th:text="#{label.pages.requests.title}">requests</a></li>
+                <li><a sec:authorize="hasAuthority('SERVICE_ACCESS_PRIVILEGE')" th:href="@{/portfolios.html}" th:text="#{label.pages.portfolios.title}">portfolios</a></li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                 <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="glyphicon glyphicon-user"></i>  <i class="glyphicon glyphicon-chevron-down"></i>
+                    </a>
+                    <ul sec:authorize="hasAuthority('LOGIN_PRIVILEGE')" class="dropdown-menu dropdown-user">
+                       <li><a><i class="glyphicon glyphicon-user"></i>&nbsp;<span th:text="${session.user.username}">email</span></a>
+                       </li>
+                       <li><a th:href="@{/changePassword.html}"><i class="glyphicon glyphicon-cog"></i>&nbsp;<span th:text="#{message.changePassword}"></span></a>
+                       </li>
+                       <li class="divider"></li>
+                       <li><a th:href="@{/logout}"><i class="glyphicon glyphicon-log-out"></i>&nbsp;<span th:text="#{label.pages.logout}">logout</span></a>
+                       </li>
+                    </ul>
+                 </li>
+              </ul>
+           </div>
+        </div>
+     </nav>
+      <div class="alert alert-danger" sec:authorize="!hasAuthority('USERS_UPDATE_PRIVILEGE')" th:text="#{message.unauth}">unauth</div>
+      <div class="container" sec:authorize="hasAuthority('USERS_UPDATE_PRIVILEGE')">
+        <div id="globalErrors" class="alert alert-danger" style="display:none"></div>
+        <div id="globalInfos" th:if="${param.message != null}" class="alert alert-info" th:text="${param.message[0]}"></div>
+         <h1 th:text="#{label.pages.admin.message}">admin</h1>
+         <hr/>
+         <div class="dropdown">
+           <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+             <i class="glyphicon glyphicon-chevron-down"></i>&nbsp;Currently logged in users
+           </button>
+           <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" >
+             <li th:each="user : ${loggedUsers}" style="margin-left:10px;">
+                <i class="glyphicon glyphicon-user"></i>&nbsp;<span th:text="${user}">user</span>
+             </li>
+           </ul>
+         </div>
+         <hr/>
+         <div class="modal fade" id="setRoleModal" tabindex="-1" role="dialog" aria-labelledby="edit" aria-hidden="true">
+            <div class="modal-dialog">
+               <div class="modal-content">
+                  <form method="post" id="setRoleForm">
+                     <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                        </button>
+                        <h4 class="modal-title custom_align" id="Heading">Evaluate request</h4>
+                     </div>
+                     <div class="modal-body">
+                       <input id ="userId" name="userId" style="display:none"/>
+                        <div class="form-group">
+                           <label>Role</label>
+                           <select name="role" class="form-control">
+                             <option selected="selected" th:value="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_USER}" th:text="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_USER.role}">ROLE_USER</option>
+                             <option th:value="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_ADMIN}" th:text="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_ADMIN.role}">ROLE_ADMIN</option>
+                             <option th:value="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_BACKOFFICE}" th:text="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_BACKOFFICE.role}">ROLE_BACKOFFICE</option>
+                             <option th:value="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_FRONTOFFICE}" th:text="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_FRONTOFFICE.role}">ROLE_FRONTOFFICE</option>
+                             <option th:value="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_SUPER}" th:text="${T(com.bfigroupe.ebourse.persistence.model.UserRole).ROLE_SUPER.role}">ROLE_SUPER</option>
+                           </select>
+                           <span id="roleError" class="text-Danger" style="display:none"></span>
+                        </div>
+                     </div>
+                     <div class="modal-footer">
+                          <a id="submitSetRole" class="btn btn-success btn-lg" style="width:100%">
+                          <span class="glyphicon glyphicon-ok-sign"></span>
+                          </a>
+                     </div>
+                  </form>
+               </div>
+            </div>
+         </div>
+         <table id="myTable"  class="table table-bordered table-striped responsive" >
+            <thead>
+               <tr>
+                  <th>ID</th>
+                  <th>Firstname</th>
+                  <th>Lastname</th>
+                  <th>Email</th>
+                  <th>Confirmed</th>
+                  <th>Enabled</th>
+                  <th>Actions</th>
+               </tr>
+            </thead>
+            <tbody>
+               <th:block th:each="user : ${Users}">
+                  <tr>
+                     <td th:text="${user.id}">id</td>
+                     <td th:text="${user.firstName}">firstname</td>
+                     <td th:text="${user.lastName}">lastname</td>
+                     <td th:text="${user.email}">email</td>
+                     <td th:text="${user.confirmed}">confirmed</td>
+                     <td th:text="${user.enabled}">enabled</td>
+                     <td>
+                        <a id="setRole" data-target="#setRoleModal" data-toggle="modal" class="btn btn-default"><span class="hidden" th:text="${user.id}"></span><i class="glyphicon glyphicon-user"></i>&nbsp;Update Role</a>
+                        <a id="enable-disable" class="btn btn-default"><span class="hidden" th:text="${user.id}"></span><i class="glyphicon glyphicon-check"></i>&nbsp;Enable/disable</a>
+                        <a id="delete" class="btn btn-danger"><span class="hidden" th:text="${user.id}"></span><i class="glyphicon glyphicon-remove"></i>&nbsp;Delete</a>
+                     </td>
+                  </tr>
+               </th:block>
+            </tbody>
+         </table>
+         <script th:inline="javascript">
+            $(document).ready(function(){
+              $('#myTable').DataTable();
+              $("#globalErrors").delay(5000).slideUp();
+              $("#globalInfos").delay(5000).slideUp();
+              $(document).on('click','#delete',function(){
+                var id =$(this).children().first().text();
+                $.ajax({
+                  url: '/users/delete/'+id,
+                  dataType: 'json',
+                  success: function(data, textStatus, jqXHR) {
+                    if(data.error == "empty"){
+                      window.location.href = "/users.html?message=" + data.message;
+                    }
+                 },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    $("#globalErrors").html(jqXHR.responseJSON.message);
+                    $("#globalErrors").slideDown();
+                  }
+                });
+              });
+              $(document).on('click','#enable-disable',function(){
+                var id =$(this).children().first().text();
+                $.ajax({
+                  url: '/users/enable-disable/'+id,
+                  dataType: 'json',
+                  success: function(data, textStatus, jqXHR) {
+                    if(data.error == "empty"){
+                      window.location.href = "/users.html?message=" + data.message;
+                    }
+                 },
+                  error: function(jqXHR, textStatus, errorThrown) {
+                    $("#globalErrors").html(jqXHR.responseJSON.message);
+                    $("#globalErrors").slideDown();
+                  }
+                });
+              });
+              $(document).on('click','#setRole',function(){
+                var id =$(this).children().first().text();
+                $('#userId').val(id);
+              });
+
+              $(document).on('click', '#submitSetRole', function() {
+                  $(".text-Danger").html('').hide();
+                  $("#globalErrors").slideUp();
+                  var formData = $('#setRoleForm').serialize();
+                  console.log(formData);
+                  $.post("users/setRole", formData, function(data) {
+                          console.log(data.message);
+                          if (data.error == "empty") {
+                              window.location.href = "/users.html?message=" + data.message;
+                          } else {
+                              var errors = $.parseJSON(data.message);
+                              console.log(errors);
+                              $.each(errors, function(index, item) {
+                                  $("#" + item.field + "Error").show().html('&nbsp;' + item.defaultMessage);
+                              });
+                              errors = $.parseJSON(data.error);
+                          }
+                      })
+                      .fail(function(data) {
+                          console.log(data.responseJSON.message);
+                          $('#setRoleModal').modal('toggle');
+                          $("#globalErrors").html(data.responseJSON.message);
+                          $("#globalErrors").slideDown();
+                      });
+              });
+            });
+         </script>
+      </div>
+   </body>
+</html>

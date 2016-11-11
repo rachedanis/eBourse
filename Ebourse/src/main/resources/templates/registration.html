@@ -1,0 +1,157 @@
+<html xmlns:th="http://www.thymeleaf.org">
+   <head>
+   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+      <link rel="stylesheet" href="/resources/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" href="/resources/css/normalize.css"></link>
+      <link rel="stylesheet" href="/resources/css/main.css"></link>
+      <script src="/resources/js/modernizr-2.8.3.min.js"></script>
+      <script src="/resources/js/jquery-1.12.0.min.js"></script>
+      <script src="/resources/js/bootstrap.min.js"></script>
+      <script src="/resources/js/plugins.js"></script>
+      <script src="/resources/js/main.js"></script>
+      <script th:src="@{/resources/js/pwstrength.js}"></script>
+      <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII"/>
+      <title th:text="#{label.form.title}">form</title>
+   </head>
+   <body>
+     <nav class="navbar navbar-default">
+        <div class="container-fluid">
+           <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              </button>
+              <a rel="home" href="#">
+              <img class="navbar-brand" src="/resources/img/logo.png"/>
+              </a>
+           </div>
+           <div class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                <li><a th:href="@{/login}"><i class="glyphicon glyphicon-log-in"></i>&nbsp;<span th:text="#{label.form.loginTitle}">login></span></a></li>
+                <li class="active"><a th:href="@{/registration.html}"><i class="glyphicon glyphicon-user"></i><span th:text="#{label.form.loginSignUp}">signup</span></a></li>
+              </ul>
+           </div>
+        </div>
+     </nav>
+     <div class="container">
+           <h1 th:text="#{label.form.title}">form</h1>
+           <hr/>
+           <form action="/" method="POST" enctype="utf8" style="margin:5px;">
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.firstName}">first</label>
+                 <span class="col-sm-5"><input class="form-control" name="firstName" value="" required="required"/></span>
+                 <span id="firstNameError" class="text-Danger" style="display:none"></span>
+              </div>
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.lastName}">last</label>
+                 <span class="col-sm-5"><input class="form-control" name="lastName" value="" required="required"/></span>
+                 <span id="lastNameError" class="text-Danger" style="display:none"></span>
+              </div>
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.cin}">cin</label>
+                 <span class="col-sm-5"><input type="text" class="form-control" name="cin" value="" required="required"/></span>
+                 <span id="cinError" class="text-Danger" style="display:none"></span>
+              </div>
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.email}">email</label>
+                 <span class="col-sm-5"><input type="email" class="form-control" name="email" value="" required="required"/></span>
+                 <span id="emailError" class="text-Danger" style="display:none"></span>
+              </div>
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.password}">password</label>
+                 <span class="col-sm-5"><input id="password" class="form-control" name="password" value="" type="password" required="required"/></span>
+                 <span id="passwordError" class="text-Danger" style="display:none"></span>
+              </div>
+              <div class="form-group row">
+                 <label class="col-sm-3" th:text="#{label.user.confirmPass}">confirm</label>
+                 <span class="col-sm-5"><input id="matchPassword" class="form-control" name="matchingPassword" value="" type="password" required="required"/></span>
+                 <span id="globalError" class="text-Danger" style="display:none"></span>
+              </div>
+              <br/>
+              <button type="submit" class="btn btn-primary" th:text="#{label.form.submit}">submit</button>
+           </form>
+           <hr/>
+           <a th:href="@{/login}" th:text="#{label.form.loginLink}">login</a>
+     </div>
+      <script th:inline="javascript">
+         /*<![CDATA[*/
+         var serverContext = [[@{/}]];
+
+         $(document).ready(function () {
+         	$('form').submit(function(event) {
+         		register(event);
+         	});
+
+         	$(":password").keyup(function(){
+         		if($("#password").val() != $("#matchPassword").val()){
+         	        $("#globalError").show().html(/*[[#{PasswordMatches.user}]]*/);
+         	    }else{
+         	    	$("#globalError").html("").hide();
+         	    }
+         	});
+
+         	options = {
+         		    common: {minChar:8},
+         		    ui: {
+         		    	showVerdictsInsideProgressBar:true,
+         		    	showErrors:true,
+         		    	errorMessages:{
+         		    		  wordLength: /*[[#{error.wordLength}]]*/,
+         		    		  wordNotEmail: /*[[#{error.wordNotEmail}]]*/,
+         		    		  wordSequences: /*[[#{error.wordSequences}]]*/,
+         		    		  wordLowercase: /*[[#{error.wordLowercase}]]*/,
+         		    		  wordUppercase: /*[[#{error.wordUppercase}]]*/,
+         		    	      wordOneNumber: /*[[#{error.wordOneNumber}]]*/,
+         		    		  wordOneSpecialChar: /*[[#{error.wordOneSpecialChar}]]*/
+         		    		}
+         		    	}
+         		};
+         	 $('#password').pwstrength(options);
+         });
+
+         function register(event){
+         	event.preventDefault();
+             $(".text-Danger").html("").hide();
+             $(".error-list").html("");
+             if($("#password").val() != $("#matchPassword").val()){
+             	$("#globalError").show().html(/*[[#{PasswordMatches.user}]]*/);
+             	return;
+             }
+             var formData= $('form').serialize();
+             $.post(serverContext + "user/registration",formData ,function(data){
+                 if(data.message == "success"){
+                     window.location.href = serverContext + "successRegister.html";
+                 }
+
+             })
+             .fail(function(data) {
+                 if(data.responseJSON.error.indexOf("MailError") > -1)
+                 {
+                     window.location.href = serverContext + "emailError.html";
+                 }
+                 else if(data.responseJSON.error == "UserAlreadyExist"){
+                     $("#emailError").show().html(data.responseJSON.message);
+                 }
+                 else if(data.responseJSON.error.indexOf("InternalError") > -1){
+                     window.location.href = serverContext + "login?message=" + data.responseJSON.message;
+                 }
+                 else{
+                 	var errors = $.parseJSON(data.responseJSON.message);
+                     $.each( errors, function( index,item ){
+                         $("#"+item.field+"Error").show().html(item.defaultMessage);
+                     });
+                     errors = $.parseJSON(data.responseJSON.error);
+                     $.each( errors, function( index,item ){
+                         $("#globalError").show().append(item.defaultMessage+"<br/>");
+                     });
+                 }
+             });
+         }
+         /*]]>*/
+
+      </script>
+   </body>
+</html>

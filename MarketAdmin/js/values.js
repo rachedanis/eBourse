@@ -1,0 +1,132 @@
+$(document).ready(function(){
+var APIURL = 'http://localhost:9000/values';
+var GET_ENTR_APIURL = 'http://localhost:9000/entreprises';
+
+// Load Data from API
+var  loadData = function (){
+  $.getJSON(APIURL, function(dt){
+    var i;
+    var out = "";
+    for(i = 0; i < dt.length; i++) {
+      out +=
+      '<tr><td class="hidden"><span>' + dt[i].id +'</span></td>'+
+      '<td><span class="to-hide name">' + dt[i].name +'</span>'+
+      '<input type="text" class="form-control to-show name-input" value="' + dt[i].name + '" placeholder="Name"></td>'+
+      '<td><span class="to-hide nature">' + dt[i].nature +'</span>'+
+      '<input type="text" class="form-control to-show nature-input" value="' + dt[i].nature + '" placeholder="Nature"></td>'+
+      '<td><span class="to-hide isin">' + dt[i].isin  + '</span>'+
+      '<input type="text" class="form-control to-show isin-input" value="' + dt[i].isin  + '" placeholder="ISIN"></td>'+
+      '<td><span class="entrepriseName">' + dt[i].entreprise.name +'</span>'+
+      '<td><span class="glyphicon glyphicon-ok to-show confirm" aria-hidden="true">&nbsp</span>'+
+      '<span class="glyphicon glyphicon-edit edit to-hide" aria-hidden="true">&nbsp</span>'+
+      '<span class="glyphicon glyphicon-trash data remove" aria-hidden="true"></span></td></tr>';
+    }
+    document.getElementById("table-body").innerHTML = out;
+  });
+};
+
+var  loadEntreprises = function (id){
+  $.getJSON(GET_ENTR_APIURL, function(dt){
+    var i;
+    var out = "";
+    for(i = 0; i < dt.length; i++) {
+      out +=
+      '<option id="entreprise" value="'+dt[i].name+'">' + dt[i].name +'</option>';
+        }
+    document.getElementById("entreprises").innerHTML = out;
+  });
+};
+
+// Add
+  $(document).on('click','#btn-add',function(){
+
+    /* initialization */
+    var name = $('#name').val();
+    var nature = $('#nature').val();
+    var entrepriseName = $('#entreprises').val();
+    var isin = $('#isin').val();
+    var data = {};
+    data.entreprise = {};
+    data.entreprise["name"] = entrepriseName;
+    data["name"]=name;
+    data["nature"]=nature;
+    data["isin"]=isin;
+
+    // construct an HTTP request
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", APIURL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(data));
+    xhr.onloadend = function () {
+      $('#name').val('');
+      $('#nature').val('');
+      $('#isin').val('');
+      loadData();
+    };
+  });
+
+  // Reset Form
+  $(document).on('click','#btn-reset',function(){
+    $('#name').val('');
+    $('#nature').val('');
+    $('#entreprise').val('');
+    $('#isin').val('');
+  });
+
+  // Remove
+  $(document).on('click','.remove',function(){
+
+    // Getting the id
+    var id =$(this).parent('td').parent('tr').children().first().first().text();
+
+    // AJAX HTTP request
+    $.ajax({
+      type: 'DELETE',
+      url: APIURL+'/'+id,
+      success: function(msg){
+        alert("Data Deleted: ");
+      }
+    });
+    $(this).parent('td').parent('tr').remove();
+  });
+
+  // Edit
+  $(document).on('click','.edit',function(){
+    $(this).parent('td').parent('tr').find('.to-hide').slideUp(300);
+    $(this).parent('td').parent('tr').find('.to-show').slideDown(300);
+  });
+
+  // Edit Confirm
+  $(document).on('click','.confirm',function(){
+
+    // Getting values
+    var parentTarget = $(this).parent('td').parent('tr');
+    var name = parentTarget.find('.name-input').val();
+    var entrepriseName = parentTarget.find('.entrepriseName-input').val();
+    var nature = parentTarget.find('.nature-input').val();
+    var isin = parentTarget.find('.isin-input').val();
+    var id =$(this).parent('td').parent('tr').children().first().first().text();
+    var data = {};
+    data.entreprise = {};
+    data.entreprise["name"] = entrepriseName;
+    data["name"]=name;
+    data["nature"]=nature;
+    data["isin"]=isin;
+
+    // construct an HTTP request
+    var xhr = new XMLHttpRequest();
+    xhr.open("PUT", APIURL+"/"+id, true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(data));
+    xhr.onloadend = function () {
+      parentTarget.find('.name').text(name);
+      parentTarget.find('.nature').text(nature);
+      parentTarget.find('.entrepriseName').text(entrepriseName);
+      parentTarget.find('.isin').text(isin);
+      parentTarget.find('.to-show').slideUp(500);
+      parentTarget.find('.to-hide').slideDown(500);
+    };
+  });
+loadEntreprises();
+loadData();
+});
